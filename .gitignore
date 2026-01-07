@@ -1,0 +1,79 @@
+# Horizon CMS - Root .gitignore
+# هذا الملف يتعامل فقط مع الملفات في المجلد الرئيسي
+# كل مجلد فرعي (BE-1.0, cms-1.0) له ملف .gitignore خاص به
+
+# ============================================
+# ✅ سيتم رفع المشروع كامل بما في ذلك:
+# ============================================
+# ✅ جميع ملفات الكود المصدر (PHP, TypeScript, React)
+# ✅ جميع ملفات الإعداد (config, package.json, composer.json)
+# ✅ composer.lock و package-lock.json (مهم للتوافق)
+# ✅ جميع الملفات الوثائقية (.md)
+# ✅ جميع ملفات الـ migrations و seeders
+# ✅ جميع ملفات الـ Controllers, Models, Services
+# ✅ جميع الـ Components و Pages
+# ✅ جميع ملفات الإعداد (tailwind.config.ts, vite.config.ts, etc.)
+
+# ============================================
+# ❌ لن يتم رفع (سيتم تجاهلها):
+# ============================================
+
+# OS Files | ملفات النظام
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE Files | ملفات محررات الأكواد
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.fleet/
+*.iml
+
+# Logs | ملفات السجلات
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment Files | ملفات البيئة (حساسة)
+.env
+.env.local
+.env.*.local
+.env.backup
+.env.production
+
+# Temporary Files | ملفات مؤقتة
+*.tmp
+*.temp
+.cache/
+
+# Documentation Build | ملفات بناء الوثائق
+docs/_build/
+docs/.doctrees/
+
+# ============================================
+# ملاحظات مهمة:
+# ============================================
+# 1. BE-1.0/.gitignore يتجاهل:
+#    - vendor/ (سيتم تثبيته بـ composer install)
+#    - storage/*.key
+#    - .env files
+#    - لكن composer.lock سيُرفع ✅
+#
+# 2. cms-1.0/.gitignore يتجاهل:
+#    - node_modules/ (سيتم تثبيته بـ npm install)
+#    - dist/ (سيتم إنشاؤه بـ npm run build)
+#    - لكن package-lock.json سيُرفع ✅
+#
+# 3. جميع ملفات الكود والإعدادات ستُرفع بالكامل ✅

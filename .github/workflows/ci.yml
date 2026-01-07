@@ -1,0 +1,118 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: horizonx_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_pgsql, mbstring, xml, bcmath
+          coverage: none
+      
+      - name: Copy .env
+        working-directory: ./BE-1.0
+        run: |
+          cp .env.example .env
+          echo "DB_CONNECTION=pgsql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_DATABASE=horizonx_test" >> .env
+          echo "DB_USERNAME=postgres" >> .env
+          echo "DB_PASSWORD=postgres" >> .env
+      
+      - name: Install Dependencies
+        working-directory: ./BE-1.0
+        run: composer install --prefer-dist --no-progress --no-interaction
+      
+      - name: Generate Key
+        working-directory: ./BE-1.0
+        run: php artisan key:generate
+      
+      - name: Directory Permissions
+        working-directory: ./BE-1.0
+        run: chmod -R 775 storage bootstrap/cache
+      
+      - name: Run Migrations
+        working-directory: ./BE-1.0
+        run: php artisan migrate --force
+      
+      - name: Run Tests
+        working-directory: ./BE-1.0
+        run: php artisan test
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: cms-1.0/package-lock.json
+      
+      - name: Install Dependencies
+        working-directory: ./cms-1.0
+        run: npm ci
+      
+      - name: Lint
+        working-directory: ./cms-1.0
+        run: npm run lint --if-present
+      
+      - name: Type Check
+        working-directory: ./cms-1.0
+        run: npm run type-check --if-present
+      
+      - name: Build
+        working-directory: ./cms-1.0
+        run: npm run build
+
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
